@@ -40,7 +40,7 @@ ajustarFinal tablero
     | last tablero == 0 = length tablero - 2 -- Índice n-1 (base 0) 
     | otherwise = length tablero - 1         -- Índice n (base 0)
 
--- 6. Función propia para encontrar el máximo (Prohibido usar maximum)
+-- 6. Función propia para encontrar el máximo 
 maximo :: [Int] -> Int
 maximo [] = error "Lista vacía"
 maximo [x] = x
