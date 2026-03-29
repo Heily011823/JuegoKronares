@@ -6,7 +6,7 @@ type Tablero = [Int]
 
 
 --
--- Kronar el resultado.json
+-- Kronar - resultado.json
 --
 
 
@@ -44,6 +44,17 @@ mejorAux tablero (c:cs) (mejorCam, (mejorTotal, mejorBono, mejorPenal)) =
        else mejorAux tablero cs (mejorCam, (mejorTotal, mejorBono, mejorPenal))
 
 
+--
+-- Hallar máximo
+--
+
+maximo :: [Int] -> Int
+maximo [x] = x
+maximo (x:xs)
+  | x > m     = x
+  | otherwise = m
+  where m = maximo xs
+
 
 --
 -- Función principal
@@ -52,8 +63,8 @@ mejorAux tablero (c:cs) (mejorCam, (mejorTotal, mejorBono, mejorPenal)) =
 kronar :: Tablero -> Int
 kronar tablero =
     let todos = caminos tablero 0
-        (_, total, _, _) = mejorCamino tablero todos
-    in total
+        puntajes = [ total | c <- todos, let (total, _, _) = evaluar tablero c ]
+    in maximo puntajes
 
 
 
