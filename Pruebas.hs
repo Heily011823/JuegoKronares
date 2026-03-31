@@ -2,49 +2,76 @@ module Pruebas where
 
 import Kronar
 
--- Tableros de prueba
-
--- t1
-
--- Explicación: No hay valores negativos seguidos en el camino, por lo tanto, no se aplica la penalización por zafiro, el resultado es un número par, entonces de da el bono de éter +10 y no se aplica la regla del vacío porque la última casilla no es 0.
-
--- Camino óptimo: [0,2,3,4] 
--- 3 + (-1) + 4 + 2 = 8
--- Par -> bono +10
--- Total = 8 + 10 = 18
+-- ========================
+-- PRUEBA 1
+-- ========================
 
 t1 :: Tablero
 t1 = [3, -2, -1, 4, 2]
 
+-- Explicación:
+-- Se evalúan varios caminos posibles.
+-- Se evita pasar por dos negativos consecutivos (-2, -1).
+-- Camino óptimo: [0,2,3,4]
+-- 3 + (-1) + 4 + 2 = 8
+-- No hay penalización
+-- 8 es par → bono +10
+-- Resultado esperado: 18
 
--- t2
 
--- Explicación: No hay valores negativos seguidos (se evita el -4) en el camino, por lo tanto, no se aplica la penalización por zafiro, el resultado es un número par, entonces de da el bono de éter +10 y se aplica la regla del vacío porque la última casilla es 0, entonces el camino termina en el índice 3.
-
--- Camino óptimo: [0,1,3]
--- 1 + (-3) + 2 = 0
--- Par -> bono +10
--- Total = 0 + 10 = 10
+-- ========================
+-- PRUEBA 2 (REGLA VACÍO)
+-- ========================
 
 t2 :: Tablero
 t2 = [1, -3, -4, 2, 0]
 
+-- Explicación:
+-- La última casilla es 0 → se aplica regla del vacío
+-- Se termina en índice 3
+-- Se evita el par (-3, -4)
+-- Camino óptimo: [0,1,3]
+-- 1 + (-3) + 2 = 0
+-- No hay penalización
+-- 0 es par → bono +10
+-- Resultado esperado: 10
 
 
--- t3
-
--- Explicación: Todos los valores son positivos, entonces el mejor camino es recorrer todas las casillas en orden y posición por posición, no hay valores negativos seguidos en el camino, por lo tanto, no se aplica la penalización por zafiro y no se aplica la regla del vacío porque la última casilla no es 0.
-
--- Camino óptimo: [0,1,2,3,4,5]
--- 5 + 5 + 5 + 5 + 5 + 5 = 30
--- Par -> bono +10
--- Total = 30 + 10 = 40
+-- ========================
+-- PRUEBA 3 (POSITIVOS)
+-- ========================
 
 t3 :: Tablero
 t3 = [5, 5, 5, 5, 5, 5]
 
+-- Explicación:
+-- Todos son positivos → conviene recorrer todo
+-- Camino óptimo: [0,1,2,3,4,5]
+-- Suma: 30
+-- Sin penalización
+-- 30 es par → bono +10
+-- Resultado esperado: 40
 
--- Función principal de pruebas
+
+-- ========================
+-- PRUEBA 4 (INVENTADA)
+-- ========================
+
+t4 :: Tablero
+t4 = [2, -5, 10, -1]
+
+-- Explicación:
+-- Se evita pasar por -5 y -1 juntos
+-- Mejor camino: [0,2,3]
+-- 2 + 10 + (-1) = 11
+-- No hay penalización
+-- 11 impar → sin bono
+-- Resultado esperado: 11
+
+
+-- ========================
+-- MAIN
+-- ========================
 
 main :: IO ()
 main = do
@@ -54,8 +81,9 @@ main = do
 
     putStrLn "Prueba #2"
     print (kronar t2)
-    -- exportarResultado t2 "resultado1.json"
 
     putStrLn "Prueba #3"
     print (kronar t3)
-    -- exportarResultado t3 "resultado2.json"
+
+    putStrLn "Prueba #4"
+    print (kronar t4)
