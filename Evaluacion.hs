@@ -1,20 +1,31 @@
-module Evaluacion (evaluar, mejorCamino) where
+module Evaluacion where
 
 import Reglas
 
+-- Retorna (Total, Bono, Penalización)
 evaluar :: Tablero -> [Int] -> (Int, Int, Int)
-evaluar tablero camino =
-  let bruto = puntajeBruto tablero camino
-      penal = penalizacionZafiro tablero camino
-      subtotal = bruto - penal
-      bono = bonoEter subtotal (last camino)
-      total = subtotal + bono
-  in (total, bono, penal)
+evaluar t camino =
+    let bruto = puntajeBruto t camino
+        penal = penalizacionZafiro t camino
+        -- Calculamos el bono sobre el bruto (o subtotal según tu regla)
+        bono  = bonoEter bruto (last camino)
+        total = bruto - penal + bono
+    in (total, bono, penal)
 
+-- RESTRICCIÓN: Implementación propia de máximo para tuplas planas
 mejorCamino :: Tablero -> [[Int]] -> ([Int], Int, Int, Int)
-mejorCamino _ [] = error "No hay caminos"
-mejorCamino tablero (c:cs) = foldl comparar (c, evaluar tablero c) cs
+mejorCamino _ [] = error "Sin caminos"
+mejorCamino t (c:cs) =
+    let (cI, tI, bI, pI) = inicial -- Aplanamos el primer caso
+    in foldl comparar (cI, tI, bI, pI) cs
   where
-    comparar (mc, (mt, mb, mp)) c =
-      let (t, b, p) = evaluar tablero c
-      in if t > mt then (c, (t, b, p)) else (mc, (mt, mb, mp))
+    -- Valor inicial aplanado
+    (tot, bon, pen) = evaluar t c
+    inicial = (c, tot, bon, pen)
+
+    -- La función de comparar ahora recibe y devuelve una tupla de 4 elementos
+    comparar (bestC, bestT, bestB, bestP) nuevoC =
+        let (nT, nB, nP) = evaluar t nuevoC
+        in if nT >= bestT
+           then (nuevoC, nT, nB, nP)
+           else (bestC, bestT, bestB, bestP)

@@ -1,87 +1,85 @@
-(* Tipo algebraico requerido *)
+(* 1. TAREA ADICIONAL: Tipo algebraico para estados *)
 type estado = Visitada | Omitida
 
-(* Leer archivo JSON como string *)
+(* 2. LECTOR DE ARCHIVO: Robusto para Windows *)
 let leer_archivo ruta =
-  let ic = open_in ruta in
-  let buffer = Buffer.create 1024 in
-  (try
-     while true do
-       Buffer.add_string buffer (input_line ic);
-       Buffer.add_char buffer '\n'
-     done
-   with End_of_file -> ());
+  let ic = open_in_bin ruta in
+  let n = in_channel_length ic in
+  let s = really_input_string ic n in
   close_in ic;
-  Buffer.contents buffer
+  s
 
-(* Extraer lista de enteros desde JSON (simple parsing) *)
+(* 3. PARSER MANUAL: Extrae listas del JSON sin usar librerías externas *)
 let extraer_lista clave texto =
   try
-    let inicio = String.index_from texto 0 '[' in
-    let fin = String.index_from texto inicio ']' in
-    let sub = String.sub texto (inicio + 1) (fin - inicio - 1) in
-    sub
-    |> String.split_on_char ','
-    |> List.map (fun x -> int_of_string (String.trim x))
+    let rec buscar_pos s sub i =
+      if i + String.length sub > String.length s then -1
+      else if String.sub s i (String.length sub) = sub then i
+      else buscar_pos s sub (i + 1)
+    in
+    let pos_clave = buscar_pos texto ("\"" ^ clave ^ "\"") 0 in
+    if pos_clave = -1 then []
+    else
+      let inicio = String.index_from texto pos_clave '[' in
+      let fin = String.index_from texto inicio ']' in
+      let sub = String.sub texto (inicio + 1) (fin - inicio - 1) in
+      sub |> String.split_on_char ','
+          |> List.filter (fun x -> String.trim x <> "")
+          |> List.map (fun x -> int_of_string (String.trim x))
   with _ -> []
 
-(* Verifica si un índice está en el camino *)
-let esta_en_camino i camino =
-  List.exists (fun x -> x = i) camino
+(* 4. LÓGICA DE VISUALIZACIÓN: Dibuja el tablero lineal *)
+let dibujar_tablero tablero camino =
+  print_endline "\n========================================";
+  print_endline "       RECONSTRUCCIÓN VISUAL KRONAR";
+  print_endline "========================================";
 
-(* Construir estados del tablero *)
-let construir_estados tablero camino =
-  List.mapi (fun i _ ->
-    if esta_en_camino i camino then Visitada else Omitida
-  ) tablero
+  (* Fila de marcas [X] o [ ] *)
+  List.iteri (fun i _ ->
+    let est = if List.mem i camino then Visitada else Omitida in
+    print_string (match est with Visitada -> "[X] " | Omitida -> "[ ] ")
+  ) tablero;
 
-(* Mostrar tablero visual *)
-let mostrar_tablero estados tablero =
-  List.iter2 (fun est valor ->
-    match est with
-    | Visitada -> print_string "[X] "
-    | Omitida  -> print_string "[ ] "
-  ) estados tablero;
   print_newline ();
 
-  List.iter (fun v ->
-    print_int v;
-    print_string " "
-  ) tablero;
-  print_newline ()
+  (* Fila de valores de energía *)
+  List.iter (Printf.printf "%3d ") tablero;
+  print_endline "\n----------------------------------------"
 
-(* Contar visitadas y omitidas *)
-let contar estados =
-  List.fold_left (fun (v, o) est ->
-    match est with
-    | Visitada -> (v + 1, o)
-    | Omitida  -> (v, o + 1)
-  ) (0, 0) estados
+(* 5. TAREA ADICIONAL: Análisis con Pattern Matching *)
+let analizar tablero camino =
+  let estados = List.mapi (fun i _ -> if List.mem i camino then Visitada else Omitida) tablero in
+  let (v, o) = List.fold_left (fun (vis, omi) e ->
+    match e with Visitada -> (vis + 1, omi) | Omitida -> (vis, omi + 1)
+  ) (0, 0) estados in
 
-(* Detectar si hay negativos visitados *)
-let hay_negativos_visitados estados tablero =
-  List.exists2 (fun est valor ->
-    match est with
-    | Visitada -> valor < 0
-    | Omitida  -> false
-  ) estados tablero
+  let hay_neg = List.exists2 (fun e valor -> e = Visitada && valor < 0) estados tablero in
 
-(* MAIN *)
+  Printf.printf "➤ Estadísticas del Viaje:\n";
+  Printf.printf "   - Casillas Visitadas: %d\n" v;
+  Printf.printf "   - Casillas Omitidas:  %d\n" o;
+  Printf.printf "   - ¿Pisó energía negativa?: %s\n" (if hay_neg then "SÍ" else "NO")
+
+(* 6. MAIN: Orquestación del programa *)
 let () =
-  let json = leer_archivo "resultado.json" in
+  (* Localizamos el archivo en la carpeta actual de trabajo *)
+  let nombre_archivo = "resultado.json" in
+  let ruta_completa = Filename.concat (Sys.getcwd()) nombre_archivo in
 
-  (* OJO: aquí asumimos orden del JSON *)
-  let tablero = extraer_lista "tablero" json in
-  let camino = extraer_lista "camino_optimo" json in
+  try
+    if not (Sys.file_exists ruta_completa) then
+      failwith ("No se encuentra el archivo: " ^ ruta_completa)
+    else
+      let json = leer_archivo ruta_completa in
+      let tablero = extraer_lista "tablero" json in
+      let camino = extraer_lista "camino_optimo" json in
 
-  let estados = construir_estados tablero camino in
+      if tablero = [] then failwith "El tablero está vacío o el JSON es inválido";
 
-  print_endline "TABLERO:";
-  mostrar_tablero estados tablero;
-
-  let (visitadas, omitidas) = contar estados in
-  Printf.printf "Visitadas: %d\n" visitadas;
-  Printf.printf "Omitidas: %d\n" omitidas;
-
-  let hayNeg = hay_negativos_visitados estados tablero in
-  Printf.printf "Hay negativos visitados: %b\n" hayNeg;
+      dibujar_tablero tablero camino;
+      analizar tablero camino;
+      print_endline "========================================\n"
+  with e ->
+    print_endline "\n--- ERROR EN LA INTEGRACIÓN ---";
+    print_endline (Printexc.to_string e);
+    print_endline "Asegúrese de que Haskell generó 'resultado.json' en esta carpeta."
