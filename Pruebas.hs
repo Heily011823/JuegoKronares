@@ -44,6 +44,13 @@ t4 = [2, -5, 10, -1]
 -- Resultado: 11
 
 -- ========================
+-- PRUEBA 5 (NEGATIVA)
+-- ========================
+
+t5 :: Tablero
+t5 = [4,-2,-3,-5]
+
+-- ========================
 -- MAIN
 -- ========================
 main :: IO ()
@@ -53,15 +60,19 @@ main = do
     putStrLn "\nPrueba #1 (Exportando a JSON):"
     print (kronar t1)
     -- Usamos 'ejecutar' que definimos en Kronar para generar el JSON
-    ejecutar t1
+    
 
     putStrLn "\nPrueba #2 (Regla del Vacío):"
     print (kronar t2)
-
+   
     putStrLn "\nPrueba #3 (Todo Positivo):"
     print (kronar t3)
 
     putStrLn "\nPrueba #4 (Inventada):"
     print (kronar t4)
+
+    putStrLn "\nPrueba #5 (Negativa):"
+    print(kronar t5)
+    ejecutar t5
 
     putStrLn "\nProceso completado. Revise 'resultado.json'."

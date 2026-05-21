@@ -1,8 +1,8 @@
 {
-  "tablero": [3,-2,-1,4,2],
-  "camino_optimo": [0,2,3,4],
-  "puntaje_final": 18,
+  "tablero": [4,-2,-3,-5],
+  "camino_optimo": [0,2,3],
+  "puntaje_final": 1,
   "bono_eter": 10,
-  "penalizacion_zafiro": 0,
+  "penalizacion_zafiro": 5,
   "regla_vacio_aplicada": false
 }
